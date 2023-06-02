@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 import uvicorn
 from fastapi.routing import APIRouter
+
 from api.handlers import user_router
 
 # create instance of the app
