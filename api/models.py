@@ -30,6 +30,10 @@ class ShowUser(TunedModel):
     is_active: bool
 
 
+class DeleteUserResponse(TunedModel):
+    deleted_user_id: uuid.UUID
+
+
 class UserCreate(BaseModel):
     name: str
     surname: str
