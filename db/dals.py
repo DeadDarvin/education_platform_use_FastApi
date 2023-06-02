@@ -42,3 +42,12 @@ class UserDAL:
         deleted_user_id_row = result.fetchone()
         if deleted_user_id_row is not None:
             return deleted_user_id_row[0]
+
+    async def update_user_by_id(self, user_id: UUID, **kwargs) -> Optional[UUID]:
+        query = update(User).where(User.user_id == user_id, User.is_active == True).\
+            values(kwargs).returning(User.user_id)
+
+        result = await self.db_session.execute(query)
+        updated_user_id_row = result.fetchone()
+        if updated_user_id_row is not None:
+            return updated_user_id_row[0]

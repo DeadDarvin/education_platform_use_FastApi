@@ -3,13 +3,17 @@ from typing import Optional
 from fastapi import Depends
 from fastapi.routing import APIRouter
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.exc import IntegrityError
 from uuid import UUID
 from fastapi.exceptions import HTTPException
 
 from db.dals import UserDAL
-from .models import UserCreate, ShowUser, DeleteUserResponse
+from .models import UserCreate, ShowUser, DeleteUserResponse, UpdateUserResponse, UpdateUserRequest
 from db.session import get_db
 
+from logging import getLogger
+
+logger = getLogger(__name__)
 
 #########################
 # BLOCK WITH API ROUTES #
@@ -41,13 +45,14 @@ async def _get_user_by_id(user_id: UUID, db: AsyncSession) -> Optional[ShowUser]
         async with session.begin():
             user_dal = UserDAL(session)
             user = await user_dal.get_user_by_id(user_id=user_id)
-            return ShowUser(
-                user_id=user.user_id,
-                name=user.name,
-                surname=user.surname,
-                email=user.email,
-                is_active=user.is_active,
-            )
+            if user is not None:
+                return ShowUser(
+                    user_id=user.user_id,
+                    name=user.name,
+                    surname=user.surname,
+                    email=user.email,
+                    is_active=user.is_active,
+                )
 
 
 async def _delete_user_by_id(user_id: UUID,  db: AsyncSession) -> Optional[UUID]:
@@ -59,20 +64,33 @@ async def _delete_user_by_id(user_id: UUID,  db: AsyncSession) -> Optional[UUID]
             return deleted_user_id
 
 
+async def _update_user_by_id(user_id: UUID, updated_user_params: dict, db: AsyncSession) -> Optional[UUID]:
+    async with db as session:
+        async with session.begin():
+            user_dal = UserDAL(session)
+            updated_user_id = await user_dal.update_user_by_id(user_id=user_id, **updated_user_params)
+
+            return updated_user_id
+
+
 #########################
 # ROUTERS #
 #########################
 
 @user_router.post("/", response_model=ShowUser)
 async def create_user(body: UserCreate, db: AsyncSession = Depends(get_db)) -> ShowUser:
-    return await _create_new_user(body, db)
+    try:
+        return await _create_new_user(body, db)
+    except IntegrityError as err:
+        logger.error(err)
+        raise HTTPException(status_code=503, detail=f"Database error: {err}")
 
 
 @user_router.get("/", response_model=ShowUser)
 async def get_user_by_id(user_id: UUID, db: AsyncSession = Depends(get_db)) -> ShowUser:
     user = await _get_user_by_id(user_id, db)
     if user is None:
-        raise HTTPException(status_code=404, detail=f"user with id {user_id} not found")
+        raise HTTPException(status_code=404, detail=f"User with id {user_id} not found")
 
     return user
 
@@ -84,3 +102,25 @@ async def delete_user_by_id(user_id: UUID, db: AsyncSession = Depends(get_db)) -
         raise HTTPException(status_code=404, detail=f"user with id {user_id} not found")
 
     return DeleteUserResponse(deleted_user_id=deleted_user_id)
+
+
+@user_router.patch("/", response_model=UpdateUserResponse)
+async def update_user_by_id(
+        user_id: UUID, body: UpdateUserRequest, db: AsyncSession = Depends(get_db)
+) -> UpdateUserResponse:
+
+    updated_user_params = body.dict(exclude_none=True)  # Pydantic method: clean all unsupported params
+    if updated_user_params == {}:
+        raise HTTPException(status_code=422, detail="At least one parameter for user update info should be provided")
+
+    user = await _get_user_by_id(user_id, db)
+    if user is None:
+        raise HTTPException(status_code=404, detail=f"User with id {user_id} not found")
+
+    try:
+        updated_user_id = await _update_user_by_id(user_id, updated_user_params, db)
+    except IntegrityError as err:
+        logger.error(err)
+        raise HTTPException(status_code=503, detail=f"Database error: {err}")
+
+    return UpdateUserResponse(updated_user_id=updated_user_id)
