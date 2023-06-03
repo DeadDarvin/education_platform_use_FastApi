@@ -26,6 +26,7 @@ class UserCreate(BaseModel):
     name: str
     surname: str
     email: EmailStr
+    password: str
 
     @validator("name")
     def validate_name(cls, value):
@@ -92,3 +93,8 @@ class DeleteUserResponse(BaseModel):
 
 class UpdateUserResponse(BaseModel):
     updated_user_id: uuid.UUID
+
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
