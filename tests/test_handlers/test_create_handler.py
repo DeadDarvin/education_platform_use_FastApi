@@ -1,14 +1,10 @@
 import json
-import uuid
+
 import pytest
 
 
 async def test_create_user(client, get_user_from_database):
-    user_data = {
-        "name": "Lenny",
-        "surname": "Kravec",
-        "email": "kravec@yandex.ru"
-    }
+    user_data = {"name": "Lenny", "surname": "Kravec", "email": "kravec@yandex.ru"}
     resp = client.post("/user/", data=json.dumps(user_data))
     data_from_resp = resp.json()
 
@@ -29,16 +25,12 @@ async def test_create_user(client, get_user_from_database):
 
 
 async def test_create_user_duplicate_email_error(client, get_user_from_database):
-    user_data = {
-        "name": "Lenny",
-        "surname": "Kravitz",
-        "email": "kravec@yandex.ru"
-    }
+    user_data = {"name": "Lenny", "surname": "Kravitz", "email": "kravec@yandex.ru"}
 
     user_data_same_email = {
         "name": "John",
         "surname": "Snow",
-        "email": "kravec@yandex.ru"
+        "email": "kravec@yandex.ru",
     }
 
     response = client.post("/user/", data=json.dumps(user_data))
@@ -50,7 +42,7 @@ async def test_create_user_duplicate_email_error(client, get_user_from_database)
     assert data_from_resp["email"] == user_data["email"]
     assert data_from_resp["is_active"] is True
 
-    users_from_db = await get_user_from_database(data_from_resp['user_id'])
+    users_from_db = await get_user_from_database(data_from_resp["user_id"])
     assert len(users_from_db) == 1
     user_from_db = dict(users_from_db[0])
     assert response.status_code == 200
@@ -62,7 +54,10 @@ async def test_create_user_duplicate_email_error(client, get_user_from_database)
 
     response = client.post("/user/", data=json.dumps(user_data_same_email))
     assert response.status_code == 503
-    assert 'duplicate key value violates unique constraint "users_email_key"' in response.json()["detail"]
+    assert (
+        'duplicate key value violates unique constraint "users_email_key"'
+        in response.json()["detail"]
+    )
 
 
 @pytest.mark.parametrize(
@@ -116,8 +111,9 @@ async def test_create_user_duplicate_email_error(client, get_user_from_database)
         ),
     ],
 )
-async def test_create_validation_error(client, user_data_for_creation,
-                                       expected_status_code, expected_detail):
+async def test_create_validation_error(
+    client, user_data_for_creation, expected_status_code, expected_detail
+):
     response = client.post("/user/", data=json.dumps(user_data_for_creation))
     data_from_response = response.json()
     assert response.status_code == expected_status_code

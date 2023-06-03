@@ -1,33 +1,37 @@
 import json
 import uuid
+
 import pytest
 
 
-async def test_update_user_by_id(client, create_user_in_database, get_user_from_database):
+async def test_update_user_by_id(
+    client, create_user_in_database, get_user_from_database
+):
     user_data = {
         "user_id": uuid.uuid4(),
         "name": "Lenny",
         "surname": "Kravec",
         "email": "kravec@yandex.ru",
-        "is_active": True
+        "is_active": True,
     }
 
     user_data_for_update = {
         "name": "Ivan",
         "surname": "Ivanov",
-        "email": "ivanov@yandex.ru"
+        "email": "ivanov@yandex.ru",
     }
 
     await create_user_in_database(**user_data)
 
-    response = client.patch(f"/user/?user_id={user_data['user_id']}",
-                            data=json.dumps(user_data_for_update))
+    response = client.patch(
+        f"/user/?user_id={user_data['user_id']}", data=json.dumps(user_data_for_update)
+    )
     assert response.status_code == 200
 
-    updated_user_id = response.json()['updated_user_id']
-    assert updated_user_id == str(user_data['user_id'])
+    updated_user_id = response.json()["updated_user_id"]
+    assert updated_user_id == str(user_data["user_id"])
 
-    users_from_db = await get_user_from_database(user_id=user_data['user_id'])
+    users_from_db = await get_user_from_database(user_id=user_data["user_id"])
     assert len(users_from_db) == 1
 
     user_from_db = dict(users_from_db[0])

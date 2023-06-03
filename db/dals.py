@@ -1,9 +1,12 @@
-from .models import User
-from sqlalchemy.ext.asyncio import AsyncSession
-from uuid import UUID
-from sqlalchemy import update, and_, select
-
 from typing import Optional
+from uuid import UUID
+
+from sqlalchemy import and_
+from sqlalchemy import select
+from sqlalchemy import update
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from .models import User
 
 ###########################################################
 # BLOCK FOR INTERACTION WITH DATABASE IN BUSINESS CONTEXT #
@@ -12,12 +15,11 @@ from typing import Optional
 
 class UserDAL:
     """Data Access Layer for operating user info"""
+
     def __init__(self, db_session: AsyncSession):
         self.db_session = db_session
 
-    async def create_user(
-        self, name: str, surname: str, email: str
-    ) -> User:
+    async def create_user(self, name: str, surname: str, email: str) -> User:
         new_user = User(
             name=name,
             surname=surname,
@@ -35,8 +37,12 @@ class UserDAL:
             return user_row[0]
 
     async def delete_user_by_id(self, user_id: UUID) -> Optional[UUID]:
-        query = update(User).where(and_(User.user_id == user_id, User.is_active == True)).\
-            values(is_active=False).returning(User.user_id)
+        query = (
+            update(User)
+            .where(and_(User.user_id == user_id, User.is_active == True))
+            .values(is_active=False)
+            .returning(User.user_id)
+        )
 
         result = await self.db_session.execute(query)
         deleted_user_id_row = result.fetchone()
@@ -44,8 +50,12 @@ class UserDAL:
             return deleted_user_id_row[0]
 
     async def update_user_by_id(self, user_id: UUID, **kwargs) -> Optional[UUID]:
-        query = update(User).where(User.user_id == user_id, User.is_active == True).\
-            values(kwargs).returning(User.user_id)
+        query = (
+            update(User)
+            .where(User.user_id == user_id, User.is_active == True)
+            .values(kwargs)
+            .returning(User.user_id)
+        )
 
         result = await self.db_session.execute(query)
         updated_user_id_row = result.fetchone()
