@@ -13,6 +13,7 @@ async def test_update_user_by_id(
         "surname": "Kravec",
         "email": "kravec@yandex.ru",
         "is_active": True,
+        "password": "12345",
     }
 
     user_data_for_update = {
@@ -51,6 +52,7 @@ async def test_update_user_check_one_is_updated(
         "surname": "Sviridov",
         "email": "lol@kek.com",
         "is_active": True,
+        "password": "12345",
     }
     user_data_2 = {
         "user_id": uuid.uuid4(),
@@ -58,6 +60,7 @@ async def test_update_user_check_one_is_updated(
         "surname": "Ivanov",
         "email": "ivan@kek.com",
         "is_active": True,
+        "password": "12345",
     }
     user_data_3 = {
         "user_id": uuid.uuid4(),
@@ -65,6 +68,7 @@ async def test_update_user_check_one_is_updated(
         "surname": "Petr",
         "email": "petr@kek.com",
         "is_active": True,
+        "password": "12345",
     }
     user_data_updated = {
         "name": "Nikifor",
@@ -188,6 +192,7 @@ async def test_update_user_validation_error(
         "surname": "Sviridov",
         "email": "lol@kek.com",
         "is_active": True,
+        "password": "12345",
     }
     await create_user_in_database(**user_data)
     resp = client.patch(
@@ -238,6 +243,7 @@ async def test_update_user_duplicate_email_error(client, create_user_in_database
         "surname": "Sviridov",
         "email": "lol@kek.com",
         "is_active": True,
+        "password": "12345",
     }
     user_data_2 = {
         "user_id": uuid.uuid4(),
@@ -245,6 +251,7 @@ async def test_update_user_duplicate_email_error(client, create_user_in_database
         "surname": "Ivanov",
         "email": "ivan@kek.com",
         "is_active": True,
+        "password": "12345",
     }
     user_data_updated = {
         "email": user_data_2["email"],

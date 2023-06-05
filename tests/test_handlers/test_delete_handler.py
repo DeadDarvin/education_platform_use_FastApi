@@ -10,6 +10,7 @@ async def test_delete_user_by_id(
         "surname": "Kravec",
         "email": "kravec@yandex.ru",
         "is_active": True,
+        "password": "12345",
     }
 
     await create_user_in_database(**user_data)

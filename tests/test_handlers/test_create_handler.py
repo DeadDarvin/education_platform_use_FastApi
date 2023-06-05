@@ -4,7 +4,12 @@ import pytest
 
 
 async def test_create_user(client, get_user_from_database):
-    user_data = {"name": "Lenny", "surname": "Kravec", "email": "kravec@yandex.ru"}
+    user_data = {
+        "name": "Lenny",
+        "surname": "Kravec",
+        "email": "kravec@yandex.ru",
+        "password": "12345",
+    }
     resp = client.post("/user/", data=json.dumps(user_data))
     data_from_resp = resp.json()
 
@@ -25,12 +30,18 @@ async def test_create_user(client, get_user_from_database):
 
 
 async def test_create_user_duplicate_email_error(client, get_user_from_database):
-    user_data = {"name": "Lenny", "surname": "Kravitz", "email": "kravec@yandex.ru"}
+    user_data = {
+        "name": "Lenny",
+        "surname": "Kravitz",
+        "email": "kravec@yandex.ru",
+        "password": "12345",
+    }
 
     user_data_same_email = {
         "name": "John",
         "surname": "Snow",
         "email": "kravec@yandex.ru",
+        "password": "12345",
     }
 
     response = client.post("/user/", data=json.dumps(user_data))
@@ -83,6 +94,11 @@ async def test_create_user_duplicate_email_error(client, get_user_from_database)
                         "msg": "field required",
                         "type": "value_error.missing",
                     },
+                    {
+                        "loc": ["body", "password"],
+                        "msg": "field required",
+                        "type": "value_error.missing",
+                    },
                 ]
             },
         ),
@@ -105,7 +121,12 @@ async def test_create_user_duplicate_email_error(client, get_user_from_database)
                         "loc": ["body", "email"],
                         "msg": "value is not a valid email address",
                         "type": "value_error.email",
-                    }
+                    },
+                    {
+                        "loc": ["body", "password"],
+                        "msg": "field required",
+                        "type": "value_error.missing",
+                    },
                 ]
             },
         ),

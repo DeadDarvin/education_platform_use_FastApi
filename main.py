@@ -2,8 +2,8 @@ import uvicorn
 from fastapi import FastAPI
 from fastapi.routing import APIRouter
 
-from api.handlers import user_router
-from api.login_handler import login_router
+from api.handlers.login_handlers import login_router
+from api.handlers.user_handlers import user_router
 
 # create instance of the app
 app = FastAPI(title="education_platform")
